@@ -225,24 +225,42 @@
       font-size: 0.75rem;
     }
 
-    /* Reset */
-    .reset-section {
+    /* Undo button */
+    .undo-section {
       text-align: center;
-      margin-top: 30px;
-      padding-bottom: 20px;
+      margin-bottom: 24px;
     }
 
-    .reset-btn {
-      background: none;
+    .undo-btn {
+      background: #1a1a1a;
       border: 1px solid #333;
       border-radius: 12px;
       padding: 10px 24px;
-      color: #666;
-      font-size: 0.85rem;
+      color: #aaa;
+      font-size: 0.9rem;
       cursor: pointer;
     }
 
-    .reset-btn:active { background: #1a1a1a; }
+    .undo-btn:active { background: #2a2a2a; }
+
+    /* Log remove button */
+    .log-entry {
+      position: relative;
+    }
+
+    .log-remove {
+      background: none;
+      border: none;
+      color: #555;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      margin-left: 8px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+
+    .log-remove:active { color: #dc2743; }
 
     /* Connection status */
     .status {
@@ -276,6 +294,10 @@
   </div>
 
   <div class="words" id="words"></div>
+
+  <div class="undo-section">
+    <button class="undo-btn" onclick="undo()">Letzte Aktion rückgängig</button>
+  </div>
 
   <div class="add-section">
     <input type="text" id="newWord" placeholder="Neues Wort hinzufügen..." maxlength="30">
@@ -327,12 +349,15 @@
       // Log
       logEl.innerHTML = state.log
         .slice(0, 15)
-        .map((e) => {
+        .map((e, i) => {
           const t = new Date(e.time);
           const timeStr = t.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
           return `<div class="log-entry">
             <span><span class="log-word">${escHtml(e.word)}</span> von <span class="log-user">${escHtml(e.user)}</span></span>
-            <span class="log-time">${timeStr}</span>
+            <span>
+              <span class="log-time">${timeStr}</span>
+              <button class="log-remove" onclick="removeEntry(${i})">✕</button>
+            </span>
           </div>`;
         })
         .join("");
@@ -414,16 +439,31 @@
       }
     }
 
-    async function resetAll() {
-      if (!confirm("Wirklich alles zurücksetzen?")) return;
+    async function undo() {
       try {
-        const res = await fetch("/api/reset", { method: "POST" });
+        const res = await fetch("/api/undo", { method: "POST" });
         if (res.ok) {
           state = await res.json();
           render();
         }
       } catch (e) {
-        console.error("reset failed", e);
+        console.error("undo failed", e);
+      }
+    }
+
+    async function removeEntry(index) {
+      try {
+        const res = await fetch("/api/remove-entry", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ index }),
+        });
+        if (res.ok) {
+          state = await res.json();
+          render();
+        }
+      } catch (e) {
+        console.error("remove-entry failed", e);
       }
     }
 

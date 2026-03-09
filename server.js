@@ -22,6 +22,8 @@ function saveData(data) {
 function getDefaultWords() {
   return {
     Lowkey: 0,
+    Cooked: 0,
+    "Am Tweaken": 0,
   };
 }
 
@@ -87,6 +89,40 @@ app.post("/api/add-word", (req, res) => {
     saveData(data);
     broadcast(data);
   }
+  res.json(data);
+});
+
+// Undo last action (decrement the most recent log entry)
+app.post("/api/undo", (req, res) => {
+  const data = loadData();
+  if (data.log.length === 0) return res.status(400).json({ error: "nothing to undo" });
+
+  const entry = data.log.shift();
+  if (entry.word in data.words && data.words[entry.word] > 0) {
+    data.words[entry.word]--;
+  }
+
+  saveData(data);
+  broadcast(data);
+  res.json(data);
+});
+
+// Remove a specific log entry by index
+app.post("/api/remove-entry", (req, res) => {
+  const { index } = req.body;
+  const data = loadData();
+
+  if (index == null || index < 0 || index >= data.log.length) {
+    return res.status(400).json({ error: "invalid index" });
+  }
+
+  const entry = data.log.splice(index, 1)[0];
+  if (entry.word in data.words && data.words[entry.word] > 0) {
+    data.words[entry.word]--;
+  }
+
+  saveData(data);
+  broadcast(data);
   res.json(data);
 });
 
