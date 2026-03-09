@@ -21,16 +21,7 @@ function saveData(data) {
 
 function getDefaultWords() {
   return {
-    Goofy: 0,
-    Loki: 0,
-    Slay: 0,
-    Vibe: 0,
-    "No Cap": 0,
-    Sigma: 0,
-    Rizz: 0,
-    Sus: 0,
-    Bruh: 0,
-    Sheesh: 0,
+    Lowkey: 0,
   };
 }
 
